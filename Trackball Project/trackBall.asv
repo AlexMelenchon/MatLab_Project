@@ -213,7 +213,7 @@ for q = 1:6
 end
 
 
-function [] = ReCalculateParametrization(R, alreadyComp, handles)
+function [] = ReCalculateParametrization(R, alreadyComp)
 %alreadyComp is a flag that we set to not recalculate already computed
 %parametrization:
     % Rotation Matrix = 1; when this occours, everyone will we reset.
@@ -222,35 +222,8 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
     % Euler Angles = 4;
     % Rotation Vector = 5;
     
-    if (alreadyComp == 1)
-        %TODO: do not calculate, but put everything to identity
-       newQuat = rotMat2Quaternion(R); 
-       [a,u] = rotMat2Eaa(R); 
-       [yaw, pitch, roll] = rotM2eAngles(R);
-        [r] = RotMat2rotVec(R);
-        %Set handles
-        
-    end
+    if(already Comp ~= 2)
     
-    if(alreadyComp ~= 2)
-       newQuat = rotMat2Quaternion(R); 
-       %Set handles
-    end
-    
-     if(alreadyComp ~= 3)
-       [a,u] = rotMat2Eaa(R); 
-       %Set handles
-     end
-    
-     if(alreadyComp ~= 4)
-       [yaw, pitch, roll] = rotM2eAngles(R);
-       %Set handles
-     end
-    
-      if(alreadyComp ~= 5)
-       [r] = RotMat2rotVec(R);
-       %Set handles
-    end
 
 
 
