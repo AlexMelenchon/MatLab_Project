@@ -57,6 +57,9 @@ set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.axes1});
 set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
+global prevVec;
+prevVec = [0,0,1];
+
 handles.Cube=DrawCube(eye(3));
 
 set(handles.axes1,'CameraPosition',...
