@@ -122,7 +122,6 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     % use with the proper R matrix to rotate the cube
     R = [1 0 0; 0 -1 0;0 0 -1];
     handles.Cube = RedrawCube(R,handles.Cube);
-    A=SpaceCoordsToVec3(6,5,10);
     
 end
 guidata(hObject,handles);
