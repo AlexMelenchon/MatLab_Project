@@ -9,6 +9,7 @@ function [a,u] = rotMat2Eaa(R)
 
 trace=R(1,1)+R(2,2)+R(3,3);
 a=acosd((trace-1)/2);
+aMod = mod(a,180);
 
 if(mod(a,180)~=0)
     

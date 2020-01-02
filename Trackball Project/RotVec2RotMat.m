@@ -8,7 +8,7 @@ function [R] = RotVec2RotMat(r)
 
 vNorm = norm(rotVec);
 angle = vNorm;
-axis = r / vNorm;
+axis = r ./ vNorm;
 
 ux= [0, -rotVec(3),  rotVec(2);
      rotVec(3),0, -rotVec(1);

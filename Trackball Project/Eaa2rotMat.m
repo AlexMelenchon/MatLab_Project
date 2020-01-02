@@ -9,7 +9,9 @@ function [R] = Eaa2rotMat(a,u)
 
 u = u(:);
 
+if(u ~= 0)
 u = u/sqrt(u'*u);
+end
 
 identity = eye(3);
 
