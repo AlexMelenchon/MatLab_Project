@@ -5,6 +5,10 @@ vec1=vec1/sqrt((vec1(1)^2)+(vec1(2)^2)+(vec1(3)^2));
 vec2=vec2/sqrt((vec2(1)^2)+(vec2(2)^2)+(vec2(3)^2));
 
 w=cross(vec1,vec2);
-q=[1+dot(vec1,vec2);w];
+a=w(1);
+b=w(2);
+c=w(3);
+d=1+dot(vec1,vec2);
+q=[d;a;b;c];
 end
 

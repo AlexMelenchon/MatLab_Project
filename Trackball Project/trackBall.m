@@ -123,10 +123,15 @@ xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
+global prevVec;
 
     %%% DO things
+    vec3=SpaceCoordsToVec3(xmouse,ymouse,xlim(1)*0.5);
+    quat=QuatFrom2Vec(vec3,prevVec);
+    prevVec=vec3;
+    R=quaternion2rotM(quat);
     % use with the proper R matrix to rotate the cube
-    R = [1 0 0; 0 -1 0;0 0 -1];
+    %R = [1 0 0; 0 -1 0;0 0 -1];
     handles.Cube = RedrawCube(R,handles.Cube);
     
 end
