@@ -6,13 +6,18 @@ function [R] = RotVec2RotMat(r)
 % Outputs:
 %	R: generated rotation matrix
 
-vNorm = norm(rotVec);
+vNorm = norm(r);
 angle = vNorm;
-axis = r ./ vNorm;
+if(vNorm ~= 0)
+axis = r / vNorm;
 
-ux= [0, -rotVec(3),  rotVec(2);
-     rotVec(3),0, -rotVec(1);
-      -rotVec(2),  rotVec(1),0];
+else
+axis = [0,0,0];
+end
+
+ux= [0, -axis(3),  axis(2);
+     axis(3),0, -axis(1);
+      -axis(2),  axis(1),0];
 
 %Re-writting ofRodrigues’ Rotation Formula
 R = eye(3) + sind(angle)* ux + (1- cosd(angle)) * (ux * ux);
