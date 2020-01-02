@@ -58,7 +58,10 @@ set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
 global prevVec;
-prevVec = [-1,-1,-1];
+prevVec = [1;1;1];
+
+global prevQuat;
+prevQuat = [1;0;0;0];
 
 handles.Cube=DrawCube(eye(3));
 
@@ -128,6 +131,26 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     global prevVec;
     vec3=SpaceCoordsToVec3(xmouse,ymouse,xlim(1)*0.5);
     quat=QuatFrom2Vec(vec3,prevVec);
+    
+    global prevQuat;
+    q0 = prevQuat(1);
+    qV = -prevQuat(2:4);
+    
+    res=zeros(4,4);
+    matr=[0,-qV(3),qV(2);
+         qV(3),0,-qV(1);
+        -qV(2),qV(1),0];
+     aux=q0*eye(3)+matr;
+
+    res(1,1)=q0;
+    res(1,2:4)=-qV';
+    res(2:4,1)=qV;
+    res(2:4,2:4)=aux;
+
+    dq=res*quat;
+    
+    prevQuat =  quat;
+    prevVec = vec3;
     
     set(handles.quat_0, 'String',quat(1));
     set(handles.quat_1, 'String', quat(2));
@@ -360,6 +383,25 @@ str2double(get(handles.rotVec_x, 'String'));
 str2double(get(handles.rotVec_y, 'String'));
 str2double(get(handles.rotVec_z, 'String'));
 ]
+
+if(abs(r(1) - pi ) < 0.15)
+r(1) = pi;
+set(handles.rotVec_x, 'String',r(1));
+end
+
+if(abs(r(2) - pi ) < 0.15)
+r(2) = pi;
+set(handles.rotVec_y, 'String',r(2));
+end
+
+if(abs(r(3) - pi ) < 0.15)
+r(3) = pi;
+set(handles.rotVec_z, 'String',r(3));
+end
+
+if(abs(r(3) - pi ) < 0.15) r(2) = pi; end
+if(abs(r(2) - pi ) < 0.15) r(3) = pi; end
+
 
 R = RotVec2RotMat(r);
 

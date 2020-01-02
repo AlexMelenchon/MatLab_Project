@@ -9,7 +9,7 @@ function [R] = Eaa2rotMat(a,u)
 
 u = u(:);
 
-if(u ~= 0)
+if(max(u) ~= 0)
 u = u/sqrt(u'*u);
 end
 

@@ -12,6 +12,7 @@ else% otherwise takes the hyperboloid as the surface
     vec=[x,y,aux]';
     m= (x^2 + y^2 + aux^2)^0.5;
     A=((r*vec)/m);
+    A = -A;
     
     
 end
