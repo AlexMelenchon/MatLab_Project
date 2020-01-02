@@ -696,7 +696,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        % Euler principal axis & angle
        set(handles.eaa_angle, 'String',a);
        set(handles.eaa_aixsX, 'String', u(1));
-       set(handles.quat_2, 'String',u(2));
+       set(handles.eaa_axisY, 'String',u(2));
        set(handles.eaa_axisZ, 'String', u(3));
        
        % Euler angles
