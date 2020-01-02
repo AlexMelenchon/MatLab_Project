@@ -7,7 +7,8 @@ function [R] = RotVec2RotMat(r)
 %	R: generated rotation matrix
 
 vNorm = norm(r);
-angle = vNorm;
+angle = vNorm * (180 / pi);
+
 if(vNorm ~= 0)
 axis = r / vNorm;
 

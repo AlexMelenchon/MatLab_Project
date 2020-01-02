@@ -9,6 +9,8 @@ function [v] = RotMat2rotVec(R)
 
 [a,u] = rotMat2Eaa(R);
 
+a = a *pi / 180;
+
 v = a*u;
 
 end

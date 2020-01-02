@@ -58,7 +58,7 @@ set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
 global prevVec;
-prevVec = [-1,-1,-1];
+prevVec = [0,0,1];
 
 handles.Cube=DrawCube(eye(3));
 
@@ -123,21 +123,17 @@ xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
+global prevVec;
 
     %%% DO things
-    global prevVec;
     vec3=SpaceCoordsToVec3(xmouse,ymouse,xlim(1)*0.5);
     quat=QuatFrom2Vec(vec3,prevVec);
-    
-    set(handles.quat_0, 'String',quat(1));
-    set(handles.quat_1, 'String', quat(2));
-    set(handles.quat_2, 'String', quat(3));
-    set(handles.quat_3, 'String', quat(4)); 
-   
-   % prevVec= vec3;
+    prevVec=vec3;
     R=quaternion2rotM(quat);
+    % use with the proper R matrix to rotate the cube
+    %R = [1 0 0; 0 -1 0;0 0 -1];
     handles.Cube = RedrawCube(R,handles.Cube);
-    ReCalculateParametrization(R, 2, handles);
+    ReCalculateParametrization(R)
     
 end
 guidata(hObject,handles);
@@ -244,7 +240,7 @@ function reset_button_Callback(hObject, eventdata, handles)
 
 R= eye(3);
 
-handles.Cube = RedrawCube(R, handles.Cube);
+RedrawCube(R, handles.Cube);
 
 ReCalculateParametrization(R, 1, handles);
 
@@ -682,7 +678,6 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
     % Euler Axis & Angle = 3;
     % Euler Angles = 4;
     % Rotation Vector = 5;
-     handles.Cube = RedrawCube(R,handles.Cube);
     
     if (alreadyComp == 1)
         %TODO: do not calculate, but put everything to identity

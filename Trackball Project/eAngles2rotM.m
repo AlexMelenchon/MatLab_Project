@@ -18,7 +18,7 @@ Rroll = [1,0,0;
          0, cosd(roll), sind(roll);
          0, -sind(roll), cosd(roll)];
      
-     R = Ryaw' * Rpitch' * Rroll';
+     R = transpose(Ryaw) * transpose(Rpitch) * transpose(Rroll);
 
 end
 
