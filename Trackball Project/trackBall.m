@@ -22,7 +22,7 @@ function varargout = trackBall(varargin)
 
 % Edit the above text to modify the response to help trackBall
 
-% Last Modified by GUIDE v2.5 02-Jan-2020 10:50:59
+% Last Modified by GUIDE v2.5 02-Jan-2020 17:18:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,7 +58,7 @@ set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
 global prevVec;
-prevVec = [1;1;1];
+prevVec = [0;0;1];
 
 global prevQuat;
 prevQuat = [1;0;0;0];
@@ -124,44 +124,40 @@ ylim = get(handles.axes1,'ylim');
 mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
+radius = sqrt(3);
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     %%% DO things
     global prevVec;
-    vec3=SpaceCoordsToVec3(xmouse,ymouse,xlim(1)*0.5);
-    quat=QuatFrom2Vec(vec3,prevVec);
-    
     global prevQuat;
-    q0 = prevQuat(1);
-    qV = -prevQuat(2:4);
     
-    res=zeros(4,4);
-    matr=[0,-qV(3),qV(2);
-         qV(3),0,-qV(1);
-        -qV(2),qV(1),0];
-     aux=q0*eye(3)+matr;
+    vec3=SpaceCoordsToVec3(xmouse,ymouse,radius);
+    newQ=QuatFrom2Vec(vec3, prevVec);
+    newQ = newQ/ sqrt(newQ' * newQ);
 
-    res(1,1)=q0;
-    res(1,2:4)=-qV';
-    res(2:4,1)=qV;
-    res(2:4,2:4)=aux;
-
-    dq=res*quat;
+    %Calculate = ?q;
+    prevQuatConj = prevQuat;
+    prevQuatConj(2:4) = -prevQuatConj(2:4);
+    dq = quaternionMultiplication(newQ, prevQuatConj);
     
-    prevQuat =  quat;
-    prevVec = vec3;
+    % Calculate new quaternion
+    dq = dq/ sqrt(dq' * dq);
+    qK = quaternionMultiplication(dq, prevQuat);
     
-    set(handles.quat_0, 'String',quat(1));
-    set(handles.quat_1, 'String', quat(2));
-    set(handles.quat_2, 'String', quat(3));
-    set(handles.quat_3, 'String', quat(4)); 
+    %Set the new quaternion
+    set(handles.quat_0, 'String',qK(1));
+    set(handles.quat_1, 'String', qK(2));
+    set(handles.quat_2, 'String', qK(3));
+    set(handles.quat_3, 'String', qK(4)); 
    
-   % prevVec= vec3;
-    R=quaternion2rotM(quat);
+    %Send the new rotation to the other param. + cube
+    R=quaternion2rotM(qK);
     handles.Cube = RedrawCube(R,handles.Cube);
     ReCalculateParametrization(R, 2, handles);
-    
+    prevQuat =  qK;
+    prevVec = (vec3 + prevVec);
+     
 end
 guidata(hObject,handles);
 end
@@ -266,6 +262,10 @@ function reset_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 R= eye(3);
+global prevVec;
+global prevQuat;
+prevVec = [1;1;1];
+prevQuat = [1;0;0;0];
 
 handles.Cube = RedrawCube(R, handles.Cube);
 
@@ -715,6 +715,218 @@ ReCalculateParametrization(R, 2, handles);
 end
 
 
+function R12_Callback(hObject, eventdata, handles)
+% hObject    handle to R12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R12 as text
+%        str2double(get(hObject,'String')) returns contents of R12 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R12_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R12 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R13_Callback(hObject, eventdata, handles)
+% hObject    handle to R13 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R13 as text
+%        str2double(get(hObject,'String')) returns contents of R13 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R13_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R13 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+function R11_Callback(hObject, eventdata, handles)
+% hObject    handle to R11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R11 as text
+%        str2double(get(hObject,'String')) returns contents of R11 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R11_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R11 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R22_Callback(hObject, eventdata, handles)
+% hObject    handle to R22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R22 as text
+%        str2double(get(hObject,'String')) returns contents of R22 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R22_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R23_Callback(hObject, eventdata, handles)
+% hObject    handle to R23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R23 as text
+%        str2double(get(hObject,'String')) returns contents of R23 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R23_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R21_Callback(hObject, eventdata, handles)
+% hObject    handle to R21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R21 as text
+%        str2double(get(hObject,'String')) returns contents of R21 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R21_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R21 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R32_Callback(hObject, eventdata, handles)
+% hObject    handle to R32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R32 as text
+%        str2double(get(hObject,'String')) returns contents of R32 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R32_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R32 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R33_Callback(hObject, eventdata, handles)
+% hObject    handle to R33 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R33 as text
+%        str2double(get(hObject,'String')) returns contents of R33 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R33_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R33 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
+
+
+
+function R31_Callback(hObject, eventdata, handles)
+% hObject    handle to R31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of R31 as text
+%        str2double(get(hObject,'String')) returns contents of R31 as a double
+end
+
+% --- Executes during object creation, after setting all properties.
+function R31_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to R31 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+end
 
 function [] = ReCalculateParametrization(R, alreadyComp, handles)
 %alreadyComp is a flag that we set to not recalculate already computed
@@ -725,6 +937,19 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
     % Euler Angles = 4;
     % Rotation Vector = 5;
      handles.Cube = RedrawCube(R,handles.Cube);
+     
+     %First of all, we set the new matrix into the UI
+        set(handles.R11, 'String', R(1,1));
+        set(handles.R12, 'String', R(1,2));
+        set(handles.R13, 'String', R(1,3));
+
+        set(handles.R21, 'String', R(2,1));
+        set(handles.R22, 'String', R(2,2));
+        set(handles.R23, 'String', R(2,3));
+
+        set(handles.R31, 'String', R(3,1));
+        set(handles.R32, 'String', R(3,2));
+        set(handles.R33, 'String', R(3,3));
     
     if (alreadyComp == 1)
         %TODO: do not calculate, but put everything to identity
@@ -759,8 +984,10 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        set(handles.rotVec_y, 'String', r(2));
        set(handles.rotVec_z, 'String',r(3));       
        
-       return;
+
+       return;        
     end
+    
     
     if(alreadyComp ~= 2)
        newQuat = rotMat2Quaternion(R); 
