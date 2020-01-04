@@ -162,8 +162,8 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
    
     %Send the new rotation to the other param. + cube
     R=quaternion2rotM(qK);
-    handles.Cube = RedrawCube(prevRot * R,handles.Cube);
-    ReCalculateParametrization(prevRot * R, 2, handles);
+    handles.Cube = RedrawCube(R * prevRot,handles.Cube);
+    ReCalculateParametrization(R* prevRot, 2, handles);
     prevQuat =  qK;
          
 end
@@ -272,10 +272,10 @@ function reset_button_Callback(hObject, eventdata, handles)
 %We reset all the global variables back into their original values (a.k.a identity)
 global prevVec;
 global prevQuat;
-global hola;
+global prevRot;
 prevVec = [0;0;1];
 prevQuat = [1;0;0;0];
-hola = prevQuat;
+prevRot = eye(3);
 
 %We reset the cube & all the param. back to starting rotation.
 R= eye(3);
