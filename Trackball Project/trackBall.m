@@ -57,11 +57,12 @@ set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.axes1});
 set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
+%We create the global variables that will be used through all the code
 global prevVec;
 prevVec = [0;0;1];
-
 global prevQuat;
 prevQuat = [1;0;0;0];
+global hola;
 
 handles.Cube=DrawCube(eye(3));
 
@@ -102,6 +103,9 @@ ylim = get(handles.axes1,'ylim');
 mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
+global hola;
+global prevQuat;
+hola = prevQuat;
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
@@ -113,6 +117,45 @@ end
 function my_MouseReleaseFcn(obj,event,hObject)
 handles=guidata(hObject);
 set(handles.figure1,'WindowButtonMotionFcn','');
+
+global prevVec;
+global prevQuat;
+global hola;
+
+prevVec = prevVec/sqrt(prevVec'*prevVec);
+prevQuat = prevQuat/sqrt(prevQuat'*prevQuat);
+
+newQ = quaternionMultiplication(prevQuat, [hola(1); -hola(2:4)]);
+newQ = quaternionMultiplication(newQ, hola);
+
+q0=newQ(1);
+
+qV= newQ(2:4);
+
+
+Q = zeros(4);
+Q(1,1) = 1;
+
+R1 = [(q0^2 + qV(1)^2 -qV(2)^2 - qV(3)^2), 2*qV(1)*qV(2) - 2*q0*qV(3), 2*qV(1)* qV(3) + 2*q0*qV(2);];
+R2 = [ 2*qV(1)*qV(2) + 2*q0*qV(3),( q0^2 - qV(1)^2 +qV(2)^2 - qV(3)^2), 2*qV(2)*qV(3) - 2 *q0*qV(1)];
+R3 = [ 2*qV(1)*qV(3) - 2*q0*qV(2), 2*qV(2)*qV(3) + 2*q0*qV(1), q0^2-qV(1)^2-qV(2)^2 + qV(3)^2;];
+R = [R1; R2; R3];
+
+Q(2:4,2:4) = R;
+
+w = Q*[0; prevVec];
+
+w(2:4) = w(2:4)/sqrt(w(2:4)'*w(2:4));
+
+prevVec = w(2:4);
+prevVec = prevVec/sqrt(prevVec'*prevVec);
+
+    axes(handles.axes2);
+    set(handles.axes2,'xlim',[-3 3],'ylim',[-3 3],'visible','off','color','none');
+
+    plot3([0;prevVec(3)],[0;prevVec(2)],[0;prevVec(1)],'Color',[1,0.5,0],'LineWidth',2)
+
+
 guidata(hObject,handles);
 end
 
@@ -131,19 +174,23 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     %%% DO things
     global prevVec;
     global prevQuat;
+    global hola;
     
+    R1=quaternion2rotM(hola);
+        
     vec3=SpaceCoordsToVec3(xmouse,ymouse,radius);
-    newQ=QuatFrom2Vec(vec3, prevVec);
+    newQ=QuatFrom2Vec(R1*vec3, prevVec);
     newQ = newQ/ sqrt(newQ' * newQ);
 
-    %Calculate = ?q;
+    %Calculate = dq;
     prevQuatConj = prevQuat;
     prevQuatConj(2:4) = -prevQuatConj(2:4);
     dq = quaternionMultiplication(newQ, prevQuatConj);
-    
-    % Calculate new quaternion
     dq = dq/ sqrt(dq' * dq);
+
+    % Calculate new quaternion
     qK = quaternionMultiplication(dq, prevQuat);
+    qK = qK/ sqrt(qK' * qK);
     
     %Set the new quaternion
     set(handles.quat_0, 'String',qK(1));
@@ -156,8 +203,7 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     handles.Cube = RedrawCube(R,handles.Cube);
     ReCalculateParametrization(R, 2, handles);
     prevQuat =  qK;
-    prevVec = (vec3 + prevVec);
-     
+         
 end
 guidata(hObject,handles);
 end
@@ -261,14 +307,17 @@ function reset_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-R= eye(3);
+%We reset all the global variables back into their original values (a.k.a identity)
 global prevVec;
 global prevQuat;
-prevVec = [1;1;1];
+global hola;
+prevVec = [0;0;1];
 prevQuat = [1;0;0;0];
+hola = prevQuat;
 
+%We reset the cube & all the param. back to starting rotation.
+R= eye(3);
 handles.Cube = RedrawCube(R, handles.Cube);
-
 ReCalculateParametrization(R, 1, handles);
 
 end
@@ -378,12 +427,15 @@ function rotVec_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%We get the re-written rotation vector
 r = [
 str2double(get(handles.rotVec_x, 'String'));
 str2double(get(handles.rotVec_y, 'String'));
 str2double(get(handles.rotVec_z, 'String'));
 ]
 
+%We check if any of the inputs was intended to be pi, for more accurate
+%calculations
 if(abs(r(1) - pi ) < 0.15)
 r(1) = pi;
 set(handles.rotVec_x, 'String',r(1));
@@ -399,12 +451,9 @@ r(3) = pi;
 set(handles.rotVec_z, 'String',r(3));
 end
 
-if(abs(r(3) - pi ) < 0.15) r(2) = pi; end
-if(abs(r(2) - pi ) < 0.15) r(3) = pi; end
-
-
+%We craete a new rotation matrix from the rotation vector % we update the
+%other param.
 R = RotVec2RotMat(r);
-
 ReCalculateParametrization(R, 5, handles);
 
 end
@@ -441,12 +490,14 @@ function eAngle_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%Get the re-written euler angles
 yaw =  str2double(get(handles.eangles_Yaw, 'String'));
 pitch = str2double(get(handles.eAngles_pitch, 'String'));
 roll = str2double(get(handles.eAngles_roll, 'String'));
 
+%Create the new rotation matrix from the euler angles & update the other
+%param.
 R = eAngles2rotM(yaw, pitch, roll);
-
 ReCalculateParametrization(R, 4, handles);
 
 end
@@ -582,16 +633,17 @@ function Eaa_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%Get the re-written axis & angle
 angle =  str2double(get(handles.eaa_angle, 'String'));
-
 u = [
 str2double(get(handles.eaa_aixsX, 'String'));
 str2double(get(handles.eaa_axisY, 'String'));
 str2double(get(handles.eaa_axisZ, 'String'));
 ]
 
+%Create the new rotation matrix from the axis & angle & update the other
+%param.
 R = Eaa2rotMat(angle,u)
-
 ReCalculateParametrization(R, 3, handles);
 
 end
@@ -701,6 +753,7 @@ function quat_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Get the re-written quaternion
 q = [
 str2double(get(handles.quat_0, 'String'));
 str2double(get(handles.quat_1, 'String'));
@@ -708,8 +761,9 @@ str2double(get(handles.quat_2, 'String'));
 str2double(get(handles.quat_3, 'String'));
 ]
 
+%Create the rotation matrix from the quaternions & update the the other
+%param.
 R = quaternion2rotM(q);
-
 ReCalculateParametrization(R, 2, handles);
 
 end
@@ -936,7 +990,8 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
     % Euler Axis & Angle = 3;
     % Euler Angles = 4;
     % Rotation Vector = 5;
-     handles.Cube = RedrawCube(R,handles.Cube);
+    
+     %handles.Cube = RedrawCube(R,handles.Cube);
      
      %First of all, we set the new matrix into the UI
         set(handles.R11, 'String', R(1,1));
@@ -984,11 +1039,10 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        set(handles.rotVec_y, 'String', r(2));
        set(handles.rotVec_z, 'String',r(3));       
        
-
        return;        
     end
     
-    
+    %Update the quaternions, if it's not already updated    
     if(alreadyComp ~= 2)
        newQuat = rotMat2Quaternion(R); 
        
@@ -1000,6 +1054,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
 
     end
     
+    %Update the euler principal axis & angle, if it's not already updated
      if(alreadyComp ~= 3)
        [a,u] = rotMat2Eaa(R); 
        
@@ -1011,6 +1066,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        
      end
     
+      %Update the euler angles, if it's not already updated
      if(alreadyComp ~= 4)
        [yaw, pitch, roll] = rotM2eAngles(R);
        %Set handles
@@ -1019,6 +1075,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        set(handles.eAngles_roll, 'String',roll);       
      end
     
+     %Update the rotation axis, if it's not already updated
       if(alreadyComp ~= 5)
        [r] = RotMat2rotVec(R);
        %Set handles
