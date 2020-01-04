@@ -13,9 +13,11 @@ qVa= qa(2:4);
 qVb= qb(2:4);
 
 res=zeros(4,4);
+
 matr=[0,-qVb(3),qVb(2);
  qVb(3),0,-qVb(1);
   -qVb(2),qVb(1),0];
+
 aux=q0b*eye(3)+matr;
 
 res(1,1)=q0b;
@@ -25,6 +27,8 @@ res(2:4,2:4)=aux;
 
 qaVector=[q0a,qVa(1),qVa(2),qVa(3)]'
 q=res*qaVector
+q = q/ sqrt(q' * q);
+
 
 end
 

@@ -58,12 +58,10 @@ set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
 %We create the global variables that will be used through all the code
-global prevVec;
-prevVec = [0;0;1];
 global prevQuat;
 prevQuat = [1;0;0;0];
 global prevRot;
-prevRot = eye(3);
+prevRot = [1;0;0;0];
 
 handles.Cube=DrawCube(eye(3));
 
@@ -116,9 +114,7 @@ function my_MouseReleaseFcn(obj,event,hObject)
 handles=guidata(hObject);
 set(handles.figure1,'WindowButtonMotionFcn','');
 
-global prevQuat;
-global prevRot;
-prevRot = quaternion2rotM(prevQuat) * prevRot;
+updatePrevRot(0);
 
 guidata(hObject,handles);
 end
@@ -132,40 +128,29 @@ mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
 radius = sqrt(3);
+prevVec = [0;0;1];
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     %%% DO things
-    global prevVec;
     global prevQuat;
     global prevRot;
             
     vec3=SpaceCoordsToVec3(xmouse,ymouse,radius);
     newQ=QuatFrom2Vec(vec3, prevVec);
     newQ = newQ/ sqrt(newQ' * newQ);
-
-    %Calculate = dq;
-    prevQuatConj = prevQuat;
-    prevQuatConj(2:4) = -prevQuatConj(2:4);
-    dq = quaternionMultiplication(newQ, prevQuatConj);
-    dq = dq/ sqrt(dq' * dq);
-
-    % Calculate new quaternion
-    qK = quaternionMultiplication(dq, prevQuat);
-    qK = qK/ sqrt(qK' * qK);
-    
+        
     %Set the new quaternion
-    set(handles.quat_0, 'String',qK(1));
-    set(handles.quat_1, 'String', qK(2));
-    set(handles.quat_2, 'String', qK(3));
-    set(handles.quat_3, 'String', qK(4)); 
-   
+    set(handles.quat_0, 'String',newQ(1));
+    set(handles.quat_1, 'String', newQ(2));
+    set(handles.quat_2, 'String', newQ(3));
+    set(handles.quat_3, 'String', newQ(4)); 
+    
+    R=quaternion2rotM(quaternionMultiplication(newQ, prevRot));
     %Send the new rotation to the other param. + cube
-    R=quaternion2rotM(qK);
-    handles.Cube = RedrawCube(R * prevRot,handles.Cube);
-    ReCalculateParametrization(R* prevRot, 2, handles);
-    prevQuat =  qK;
-         
+    ReCalculateParametrization(R, 2, handles);
+    prevQuat =  newQ;
+
 end
 guidata(hObject,handles);
 end
@@ -279,7 +264,6 @@ prevRot = eye(3);
 
 %We reset the cube & all the param. back to starting rotation.
 R= eye(3);
-handles.Cube = RedrawCube(R, handles.Cube);
 ReCalculateParametrization(R, 1, handles);
 
 end
@@ -417,6 +401,7 @@ end
 %other param.
 R = RotVec2RotMat(r);
 ReCalculateParametrization(R, 5, handles);
+updatePrevRot(1);
 
 end
 
@@ -461,6 +446,7 @@ roll = str2double(get(handles.eAngles_roll, 'String'));
 %param.
 R = eAngles2rotM(yaw, pitch, roll);
 ReCalculateParametrization(R, 4, handles);
+updatePrevRot(1);
 
 end
 
@@ -608,6 +594,8 @@ str2double(get(handles.eaa_axisZ, 'String'));
 R = Eaa2rotMat(angle,u)
 ReCalculateParametrization(R, 3, handles);
 
+updatePrevRot(1);
+
 end
 
 
@@ -727,6 +715,9 @@ str2double(get(handles.quat_3, 'String'));
 %param.
 R = quaternion2rotM(q);
 ReCalculateParametrization(R, 2, handles);
+
+updatePrevQuat(q,1);
+updatePrevRot(1);
 
 end
 
@@ -953,7 +944,8 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
     % Euler Angles = 4;
     % Rotation Vector = 5;
     
-     %handles.Cube = RedrawCube(R,handles.Cube);
+    %Re-draw the cube according to the new rotation.
+     handles.Cube = RedrawCube(R,handles.Cube);
      
      %First of all, we set the new matrix into the UI
         set(handles.R11, 'String', R(1,1));
@@ -969,10 +961,9 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
         set(handles.R33, 'String', R(3,3));
     
     if (alreadyComp == 1)
-        %TODO: do not calculate, but put everything to identity
        newQuat = [1,0,0,0]; 
        a = 0;
-       u = [0,0,0]
+       u = [0;0;0];
        yaw = 0;
        pitch = 0;
        roll = 0;
@@ -1000,14 +991,13 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        set(handles.rotVec_x, 'String',r(1));
        set(handles.rotVec_y, 'String', r(2));
        set(handles.rotVec_z, 'String',r(3));       
-       
        return;        
     end
     
     %Update the quaternions, if it's not already updated    
     if(alreadyComp ~= 2)
-       newQuat = rotMat2Quaternion(R); 
-       
+       newQuat = rotMat2Quaternion(R);       
+       updatePrevQuat(newQuat, 1);
        %Set handles
        set(handles.quat_0, 'String',newQuat(1));
        set(handles.quat_1, 'String', newQuat(2));
@@ -1044,8 +1034,44 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
        set(handles.rotVec_x, 'String',r(1));
        set(handles.rotVec_y, 'String', r(2));
        set(handles.rotVec_z, 'String',r(3));       
-    end
+      end
+end
 
+%Updates the previous rotation so the inputs match w/ the actual cube
+%rotation (called in MouseRelease & when updating any param.)
+function [] = updatePrevRot(toReset)
+%ToReset is a flag that tells if we have to reset the prevRot or not.
+% Reset = 1
+% NoReset = 0
+% This is used so when the user pushes a new param. we get back to the
+% origin, so we don't drag errors & so the rotation doesn't cause any
+% critical condition w/ the previous stablished rotation &, therefore, the
+% input from the user start not matching the viewport
+global prevQuat;
+global prevRot;
 
+if(toReset == 1)
+   prevRot = eye(3);
+end;
 
+prevRot = quaternionMultiplication(prevQuat, prevRot);
+end
+
+%Updates the prevoius Quaternion, that is the rotation that the user inputs
+% while dragging.
+function [] = updatePrevQuat(newQuat, toReset)
+%ToReset is a flag that tells if we have to reset the prevQuat or not.
+% Reset = 1
+% NoReset = 0
+% This is used so when the user pushes a new param. we get back to the
+% origin, so we don't drag errors & so the rotation doesn't cause any
+% critical condition w/ the previous stablished rotation &, therefore, the
+% input from the user start not matching the viewport
+global prevQuat;
+
+if(toReset == 1)
+   prevQuat = [1;0;0;0];
+end;
+   
+prevQuat =  newQuat;
 end

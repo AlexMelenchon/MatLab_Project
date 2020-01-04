@@ -11,7 +11,6 @@ angle = vNorm * (180 / pi);
 
 if(vNorm ~= 0)
 axis = r / vNorm;
-
 else
 axis = [0,0,0];
 end
