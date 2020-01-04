@@ -8,7 +8,6 @@ function [yaw, pitch, roll] = rotM2eAngles(R)
 %    pitch: angle of rotation around the y axis
 %    roll: angle of rotation around the x axis
 
-
 pitch = asind(-R(3,1)); %We determine the pitch
   
 if(sind(pitch) == 1 || sind(pitch) == -1) % If sin of theta is 1 or -1; we have to calculate the angles in a different way.

@@ -6,11 +6,13 @@ function [v] = RotMat2rotVec(R)
 % Outputs:
 %	v: generated rotation vector
 
-
+%First we transform to Euler Principal Angle & Axis
 [a,u] = rotMat2Eaa(R);
 
+%Transform from deg to rad
 a = a *pi / 180;
 
+%Calculate the vector
 v = a*u;
 
 end

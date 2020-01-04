@@ -57,9 +57,21 @@ set(hObject,'WindowButtonDownFcn',{@my_MouseClickFcn,handles.axes1});
 set(hObject,'WindowButtonUpFcn',{@my_MouseReleaseFcn,handles.axes1});
 axes(handles.axes1);
 
-%We create the global variables that will be used through all the code
+%We create the global variables that will be used through all the code------
+
+%This saves the rotation of the user input while it drags; the quaternion
+%calculated is always seen like it's from what we determined front of the
+%cube, because, in our script, we rotate 2 times: one with this quaternion &
+%the other one with the previous rotation
 global prevQuat;
 prevQuat = [1;0;0;0];
+
+%This stores the rotation between drags. What we do, is that we update this
+%rotation only when the user stops draggin &, it is equal to the current
+%drag rotation (prevQuat) * itself; what this does is that, when we rotate
+%in the next click, the rotation inputed by the user will calculate itself
+%like it is seen from the front (check prevQuat) & it will we rotated by
+%this, causing the rotation to start & match the user's viewport
 global prevRot;
 prevRot = [1;0;0;0];
 
@@ -114,6 +126,12 @@ function my_MouseReleaseFcn(obj,event,hObject)
 handles=guidata(hObject);
 set(handles.figure1,'WindowButtonMotionFcn','');
 
+% We update the previous rotation: what this does is match the "next click
+% rotation" with our viewport, because, when we rotate, the rotation given
+% by the calculated quaternion is always seen from the font; the previous
+% rotation makes that rotation has the impact that is expected by the user
+% (Check the comments in the declaration of the global variables for more
+% info)
 updatePrevRot(0);
 
 guidata(hObject,handles);
@@ -127,17 +145,27 @@ ylim = get(handles.axes1,'ylim');
 mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
-radius = sqrt(3);
-prevVec = [0;0;1];
 
+%Variables used in the calculations----------------------
+%Radius--
+radius = sqrt(3);
+
+%Normal--
+NormalFromOrigin = [0;0;1];
+
+%We will only do the logic if the mouse if over the axis
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
     %%% DO things
     global prevQuat;
     global prevRot;
-            
+    
+    %We calculate the vector where the input is being done using Holroyd’s 
+    %arcball
     vec3=SpaceCoordsToVec3(xmouse,ymouse,radius);
-    newQ=QuatFrom2Vec(vec3, prevVec);
+    
+    %Then we create the new quaternion from the vector
+    newQ=QuatFrom2Vec(vec3, NormalFromOrigin);
     newQ = newQ/ sqrt(newQ' * newQ);
         
     %Set the new quaternion
@@ -146,7 +174,11 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     set(handles.quat_2, 'String', newQ(3));
     set(handles.quat_3, 'String', newQ(4)); 
     
+    %Calculate the new rotation from the new Quaternion & the previous
+    %rotation
     R=quaternion2rotM(quaternionMultiplication(newQ, prevRot));
+    
+    
     %Send the new rotation to the other param. + cube
     ReCalculateParametrization(R, 2, handles);
     prevQuat =  newQ;
@@ -245,9 +277,6 @@ end
 end
 
 
-
-
-
 % --- Executes on button press in reset_button.
 function reset_button_Callback(hObject, eventdata, handles)
 % hObject    handle to reset_button (see GCBO)
@@ -255,10 +284,8 @@ function reset_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 %We reset all the global variables back into their original values (a.k.a identity)
-global prevVec;
 global prevQuat;
 global prevRot;
-prevVec = [0;0;1];
 prevQuat = [1;0;0;0];
 prevRot = eye(3);
 
@@ -401,6 +428,8 @@ end
 %other param.
 R = RotVec2RotMat(r);
 ReCalculateParametrization(R, 5, handles);
+
+% Update the global variables used in the rotation
 updatePrevRot(1);
 
 end
@@ -446,6 +475,8 @@ roll = str2double(get(handles.eAngles_roll, 'String'));
 %param.
 R = eAngles2rotM(yaw, pitch, roll);
 ReCalculateParametrization(R, 4, handles);
+
+% Update the global variables used in the rotation
 updatePrevRot(1);
 
 end
@@ -594,6 +625,7 @@ str2double(get(handles.eaa_axisZ, 'String'));
 R = Eaa2rotMat(angle,u)
 ReCalculateParametrization(R, 3, handles);
 
+% Update the global variables used in the rotation
 updatePrevRot(1);
 
 end
@@ -716,6 +748,7 @@ str2double(get(handles.quat_3, 'String'));
 R = quaternion2rotM(q);
 ReCalculateParametrization(R, 2, handles);
 
+% Update the global variables used in the rotation
 updatePrevQuat(q,1);
 updatePrevRot(1);
 

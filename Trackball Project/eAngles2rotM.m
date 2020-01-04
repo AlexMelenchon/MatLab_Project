@@ -8,6 +8,7 @@ function [R] = eAngles2rotM(yaw, pitch, roll)
 % Outputs:
 %	R: rotation matrix
 
+%Create the matrix that repsetens the rotation for each euler angle
 Ryaw = [cosd(yaw),sind(yaw), 0;
         -sind(yaw), cosd(yaw), 0;
         0, 0, 1];
@@ -18,7 +19,9 @@ Rroll = [1,0,0;
          0, cosd(roll), sind(roll);
          0, -sind(roll), cosd(roll)];
      
-     R = transpose(Ryaw) * transpose(Rpitch) * transpose(Rroll);
+%Then we multiply the rotation between each order in this order & we
+%transpose them to match the desired matrix     
+R = transpose(Ryaw) * transpose(Rpitch) * transpose(Rroll);
 
 end
 
