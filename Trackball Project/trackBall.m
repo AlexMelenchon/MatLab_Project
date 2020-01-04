@@ -62,7 +62,8 @@ global prevVec;
 prevVec = [0;0;1];
 global prevQuat;
 prevQuat = [1;0;0;0];
-global hola;
+global prevRot;
+prevRot = eye(3);
 
 handles.Cube=DrawCube(eye(3));
 
@@ -103,9 +104,6 @@ ylim = get(handles.axes1,'ylim');
 mousepos=get(handles.axes1,'CurrentPoint');
 xmouse = mousepos(1,1);
 ymouse = mousepos(1,2);
-global hola;
-global prevQuat;
-hola = prevQuat;
 
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
@@ -118,43 +116,9 @@ function my_MouseReleaseFcn(obj,event,hObject)
 handles=guidata(hObject);
 set(handles.figure1,'WindowButtonMotionFcn','');
 
-global prevVec;
 global prevQuat;
-global hola;
-
-prevVec = prevVec/sqrt(prevVec'*prevVec);
-prevQuat = prevQuat/sqrt(prevQuat'*prevQuat);
-
-newQ = quaternionMultiplication(prevQuat, [hola(1); -hola(2:4)]);
-newQ = quaternionMultiplication(newQ, hola);
-
-q0=newQ(1);
-
-qV= newQ(2:4);
-
-
-Q = zeros(4);
-Q(1,1) = 1;
-
-R1 = [(q0^2 + qV(1)^2 -qV(2)^2 - qV(3)^2), 2*qV(1)*qV(2) - 2*q0*qV(3), 2*qV(1)* qV(3) + 2*q0*qV(2);];
-R2 = [ 2*qV(1)*qV(2) + 2*q0*qV(3),( q0^2 - qV(1)^2 +qV(2)^2 - qV(3)^2), 2*qV(2)*qV(3) - 2 *q0*qV(1)];
-R3 = [ 2*qV(1)*qV(3) - 2*q0*qV(2), 2*qV(2)*qV(3) + 2*q0*qV(1), q0^2-qV(1)^2-qV(2)^2 + qV(3)^2;];
-R = [R1; R2; R3];
-
-Q(2:4,2:4) = R;
-
-w = Q*[0; prevVec];
-
-w(2:4) = w(2:4)/sqrt(w(2:4)'*w(2:4));
-
-prevVec = w(2:4);
-prevVec = prevVec/sqrt(prevVec'*prevVec);
-
-    axes(handles.axes2);
-    set(handles.axes2,'xlim',[-3 3],'ylim',[-3 3],'visible','off','color','none');
-
-    plot3([0;prevVec(3)],[0;prevVec(2)],[0;prevVec(1)],'Color',[1,0.5,0],'LineWidth',2)
-
+global prevRot;
+prevRot = quaternion2rotM(prevQuat) * prevRot;
 
 guidata(hObject,handles);
 end
@@ -174,12 +138,10 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
     %%% DO things
     global prevVec;
     global prevQuat;
-    global hola;
-    
-    R1=quaternion2rotM(hola);
-        
+    global prevRot;
+            
     vec3=SpaceCoordsToVec3(xmouse,ymouse,radius);
-    newQ=QuatFrom2Vec(R1*vec3, prevVec);
+    newQ=QuatFrom2Vec(vec3, prevVec);
     newQ = newQ/ sqrt(newQ' * newQ);
 
     %Calculate = dq;
@@ -200,8 +162,8 @@ if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
    
     %Send the new rotation to the other param. + cube
     R=quaternion2rotM(qK);
-    handles.Cube = RedrawCube(R,handles.Cube);
-    ReCalculateParametrization(R, 2, handles);
+    handles.Cube = RedrawCube(prevRot * R,handles.Cube);
+    ReCalculateParametrization(prevRot * R, 2, handles);
     prevQuat =  qK;
          
 end
