@@ -1,6 +1,12 @@
 function [A]=SpaceCoordsToVec3(x,y,r)
-%This function gets the 2D Mause coordinates and the sphere radius and returns a vector in the 3D
-%surface of a Holroyd's arcball
+% [A]=SpaceCoordsToVec3(x,y,r)
+% Computes the vector w/ Holroyd’s arcball given three points in the space
+% Inputs:
+%    x: point in X
+%    y: point in Y
+%    z: point in Z
+% Outputs:
+%    A: Result vector
 
 if (((x^2) + (y^2))< 0.5*r^2)% takes the sphere as the surface
   aux= sqrt((r^2)-(x^2)-(y^2));
