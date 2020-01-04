@@ -23,6 +23,6 @@ c=w(3);
 %We asign 1 + the dot product of the imput vectors to the real part of the
 %quaternion, which gives us the rotation of the quaternion
 d=1+dot(vec1,vec2);
-q=[d;a;b;c];
+q=[1+dot(vec1,vec2);w(1);w(2);w(3)];
 end
 

@@ -10,6 +10,7 @@ function [q] = quaternionMultiplication(qb, qa)
 %Divide the quaternion in multiple vars-----
 q0b= qb(1)
 qVb= qb(2:4);
+qa = qa(:);
 
 %Create the matrix used in the operations from the vector on the right----
 matr=[0,-qVb(3),qVb(2);
@@ -25,7 +26,8 @@ res(2:4,2:4)=aux;
 
 %We perform the quaternion multiplication & we normalize it before sending it
 %off
-q=res*qa
+qaVector=[qa(1),qa(2),qa(3),qa(4)]';
+q=res*qaVector;
 q = q/ sqrt(q' * q);
 
 
