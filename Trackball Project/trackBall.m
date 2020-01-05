@@ -156,7 +156,7 @@ NormalFromOrigin = [0;0;1];
 %We will only do the logic if the mouse if over the axis
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
-    %%% DO things
+    %Start calculating the next rotation-------
     global prevQuat;
     global prevRot;
     
