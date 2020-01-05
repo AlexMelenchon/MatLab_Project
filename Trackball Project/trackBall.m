@@ -156,7 +156,7 @@ NormalFromOrigin = [0;0;1];
 %We will only do the logic if the mouse if over the axis
 if xmouse > xlim(1) && xmouse < xlim(2) && ymouse > ylim(1) && ymouse < ylim(2)
 
-    %%% DO things
+    %Start calculating the next rotation-------
     global prevQuat;
     global prevRot;
     
@@ -471,6 +471,16 @@ yaw =  str2double(get(handles.eangles_Yaw, 'String'));
 pitch = str2double(get(handles.eAngles_pitch, 'String'));
 roll = str2double(get(handles.eAngles_roll, 'String'));
 
+%Check Boundaries (for visability porpuses)-----
+if(yaw > 360) yaw = yaw - 360; end;
+set(handles.eangles_Yaw, 'String',yaw);
+       
+if(pitch > 360) pitch = pitch - 360; end;
+set(handles.eAngles_pitch, 'String', pitch);
+       
+if(roll > 360) roll = roll - 360; end;
+set(handles.eAngles_roll, 'String',roll);       
+
 %Create the new rotation matrix from the euler angles & update the other
 %param.
 R = eAngles2rotM(yaw, pitch, roll);
@@ -614,6 +624,11 @@ function Eaa_button_Callback(hObject, eventdata, handles)
 
 %Get the re-written axis & angle
 angle =  str2double(get(handles.eaa_angle, 'String'));
+
+if(angle > 360) angle = angle - 360; end;
+set(handles.eaa_angle, 'String',angle);       
+
+
 u = [
 str2double(get(handles.eaa_aixsX, 'String'));
 str2double(get(handles.eaa_axisY, 'String'));
@@ -1054,6 +1069,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
       %Update the euler angles, if it's not already updated
      if(alreadyComp ~= 4)
        [yaw, pitch, roll] = rotM2eAngles(R);
+       
        %Set handles
        set(handles.eangles_Yaw, 'String',yaw);
        set(handles.eAngles_pitch, 'String', pitch);

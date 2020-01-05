@@ -15,11 +15,6 @@ vec2=vec2/sqrt((vec2(1)^2)+(vec2(2)^2)+(vec2(3)^2));
 %perpendicular to both imput vectors
 w=cross(vec1,vec2);
 
-%We asign the vector w to the complex part of the quaternion, we do it
-%this way instead of in one line because matlab gives error
-a=w(1);
-b=w(2);
-c=w(3);
 %We asign 1 + the dot product of the imput vectors to the real part of the
 %quaternion, which gives us the rotation of the quaternion
 d=1+dot(vec1,vec2);
