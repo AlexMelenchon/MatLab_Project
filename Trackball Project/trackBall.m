@@ -624,6 +624,11 @@ function Eaa_button_Callback(hObject, eventdata, handles)
 
 %Get the re-written axis & angle
 angle =  str2double(get(handles.eaa_angle, 'String'));
+
+if(angle > 360) angle = angle - 360; end;
+set(handles.eaa_angle, 'String',angle);       
+
+
 u = [
 str2double(get(handles.eaa_aixsX, 'String'));
 str2double(get(handles.eaa_axisY, 'String'));
