@@ -471,6 +471,16 @@ yaw =  str2double(get(handles.eangles_Yaw, 'String'));
 pitch = str2double(get(handles.eAngles_pitch, 'String'));
 roll = str2double(get(handles.eAngles_roll, 'String'));
 
+%Check Boundaries (for visability porpuses)-----
+if(yaw > 360) yaw = yaw - 360; end;
+set(handles.eangles_Yaw, 'String',yaw);
+       
+if(pitch > 360) pitch = pitch - 360; end;
+set(handles.eAngles_pitch, 'String', pitch);
+       
+if(roll > 360) roll = roll - 360; end;
+set(handles.eAngles_roll, 'String',roll);       
+
 %Create the new rotation matrix from the euler angles & update the other
 %param.
 R = eAngles2rotM(yaw, pitch, roll);
@@ -1054,6 +1064,7 @@ function [] = ReCalculateParametrization(R, alreadyComp, handles)
       %Update the euler angles, if it's not already updated
      if(alreadyComp ~= 4)
        [yaw, pitch, roll] = rotM2eAngles(R);
+       
        %Set handles
        set(handles.eangles_Yaw, 'String',yaw);
        set(handles.eAngles_pitch, 'String', pitch);
